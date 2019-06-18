@@ -510,7 +510,7 @@ module.exports = function(controller, dialogflowMiddleware) {
 
 function usersList()
  {
-      request.get('https://slack.com/api/users.list?token=xoxb-615249373522-636133935490-dFVqcVGC0bzgVS0BdKlTXX7t&pretty=1', function(err, req, res){
+      request.get('https://slack.com/api/users.list?token='+process.env.AppToken+'&pretty=1', function(err, req, res){
       var userdata = JSON.parse(res);
       uselist = userdata.members;
     }); 
@@ -533,7 +533,7 @@ function usersList()
 
  function botUsersList()
  {
-       request.get("https://slack.com/api/im.list?token=xoxb-615249373522-636133935490-dFVqcVGC0bzgVS0BdKlTXX7t&pretty=1", function(err, req, res)
+       request.get("https://slack.com/api/im.list?token="+process.env.AppToken+"&pretty=1", function(err, req, res)
        {
           var userdata = JSON.parse(res);
           botUseList = userdata.ims;
