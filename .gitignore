@@ -1,0 +1,6 @@
+.db
+node_modules
+components/routes/_*
+.idea/
+.env
+availbot-704b8-2f4fe5ffbb2a.json     
