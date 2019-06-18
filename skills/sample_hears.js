@@ -72,6 +72,7 @@ module.exports = function(controller, dialogflowMiddleware) {
             //if a message does not specify dates but specifies the duration
             else if(!para.fields.date1 && !para.fields.date2)
             { 
+              flag3 = 0;
               var returnMsg = onlyDuration(message, para);
               privateMessage = returnMsg[0];
               privCategory = returnMsg[1];
@@ -454,21 +455,20 @@ module.exports = function(controller, dialogflowMiddleware) {
                   
                     if(textMessage.includes("rest of this week") || textMessage.includes("rest of the week") || textMessage.includes("rest of week"))
                     { 
-                      //sd = currentDate + " " + currentTime;
                       var dNow = new Date();
                       var dateNew = lastDayOfWeek(dNow);
-                      if(sd == "undefined")
+                      if(!para.fields.date1 || para.fields.date1.stringValue == false)
                       {
                         sd = currentDate + " " + currentTime;
                       }
                       ed = dateNew + " " + currentTime;
                     }
 
-                    if(textMessage.includes("end of the month") || textMessage.includes("end of this month") || textMessage.includes("end of month"))
+                    if(textMessage.includes("end of the month") || textMessage.includes("end of this month") || textMessage.includes("end of month") || textMessage.includes("rest of month") || textMessage.includes("rest of the month") || textMessage.includes("rest of this month"))
                     {
                       var dateNew = lastDayOfMonth(year, month);
-
-                      if(sd == "undefined")
+                      console.log(" IN MONTHHH" +para.fields.date1.stringValue);
+                      if(!para.fields.date1 || para.fields.date1.stringValue == false)
                       {
                         console.log("in sd");
                         sd = currentDate + " " + currentTime;
@@ -717,7 +717,7 @@ function twoAvail(message, para)
   category = para.fields.Availability.stringValue;
   category2 = para.fields.Availability2.stringValue;
   console.log(availabilityWord);
-  var index = availMessage.indexOf(availabilityWord);
+  var index = availMessage.toLowerCase().indexOf(availabilityWord);
   console.log(index);
   var length = availMessage.length;
   message1 = availMessage.substr(0, index);
@@ -731,7 +731,7 @@ function twoAvail(message, para)
 
 function onlyDuration(message, para)
 {
-  flag3 = 1;
+  flag3 = 0;
   var userName;
   var privCategory;
   var privateMessage;
