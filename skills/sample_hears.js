@@ -9,8 +9,8 @@ module.exports = function(controller, dialogflowMiddleware) {
    var dateValidResult;
    var am = 0;
    var un = 0;
-   var category;
-   var category2;
+   var category = undefined;
+   var category2 = undefined;
    var privCategory;
     controller.hears(['Default Welcome Intent, Date Intent, duration, Date Number'], 'direct_message, ambient' , dialogflowMiddleware.hears, function(
     bot,
@@ -23,18 +23,19 @@ module.exports = function(controller, dialogflowMiddleware) {
         if(message.event.channel === 'CJEJMN9PF' || searchUser(message))
         {
             replyText = message.fulfillment.text;     // message object has new fields added by Dialogflow
-            console.log(message);
-            var userId;
+            console.log(message);                     //Prints the details about the message
+            var userId;                               //Declaration of variables
             var textMessage;
             var count = 0;
             var flag2 = 0;
             var flag1 = 0; 
-            var flag3 = 0;
-            var sd = "undefined";
+            var flag3 = 1;
+            var sd = "undefined"; 
             var ed = "undefined";
             var add = 0;
             var message1;
             var message2;
+            var d1 = d2 = d3 = d4 = dpd1 = dpd2 = dpd3 = dpd4 = "undefined";
             if(message.event.text.includes("tomorrow"))    //for parameter add
             {
                add = "tomorrow";
@@ -44,10 +45,10 @@ module.exports = function(controller, dialogflowMiddleware) {
                add = "yesterday";
             }
             
-            console.log("PARAMETERS:");                   
+            console.log("PARAMETERS:");                   //Prints the parameters in the message
             var para = message.nlpResponse.queryResult.parameters;
             console.log(para);
-
+            
             //if a message contains two availability entities
             if(para.fields.Availability && para.fields.Availability2)
             {  
@@ -61,7 +62,7 @@ module.exports = function(controller, dialogflowMiddleware) {
               }
             }
          
-            //when message contains dates in different format
+            //when message contains dates wihtout any month; Eg- 21, 22, 23 June
             if(para.fields['number-integer'])
             {
               var returnMsg = dateReply(message, para);
@@ -69,7 +70,7 @@ module.exports = function(controller, dialogflowMiddleware) {
               privCategory = returnMsg[1];
             }
            
-            //if a message does not specify dates but specifies the duration
+            //if a message does not specify dates but specifies the duration; Eg- wfh for 2 days
             else if(!para.fields.date1 && !para.fields.date2)
             { 
               flag3 = 0;
@@ -79,17 +80,15 @@ module.exports = function(controller, dialogflowMiddleware) {
 
               if(para.fields.duration)
               {
-                  console.log(para.fields.duration);
                   am = para.fields.duration.structValue.fields.amount.numberValue;
                   un= para.fields.duration.structValue.fields.unit.stringValue;
-                  console.log(am + "   " +un);
               }      
             }
 
             //when message specifies dates but no duration
             else
             {
-              var startDate = para.fields.date1.stringValue;
+              var startDate = para.fields.date1.stringValue;  //Extracts values from different date parameters
               var endDate = para.fields.date2.stringValue;
               var dateThree = para.fields.date3.stringValue;
               var dateFour = para.fields.date4.stringValue;
@@ -97,54 +96,88 @@ module.exports = function(controller, dialogflowMiddleware) {
               var h = d.getHours();                          //gives the current time
               var m = d.getMinutes(); 
               var s = d.getSeconds()
-              var day = String(d.getDate());                 //gives the current dtae
+              var day = String(d.getDate());                 //gives the current day
               var month = String((d.getMonth() + 1));
               var year = d.getFullYear();
               var currentDate = month + '-' + day + "-" + year;
               var currentTime = h + ':' + m + ':' + s;
 
               //finds out dates if date-period is present
-              if(para.fields['date-period'] && para.fields['date-period'].structValue !== undefined)// && startDate == " ")
+              if((para.fields['date-period'] && para.fields['date-period'].structValue !== undefined) ||(para.fields['date-period2'] && para.fields['date-period2'].structValue !== undefined))// && startDate == " ")
               {
-                console.log("IN DATE PERIOD");
-                var datePeriodSd = para.fields['date-period'].structValue.fields.startDate.stringValue;
-                var datePeriodEd = para.fields['date-period'].structValue.fields.endDate.stringValue;
-                var datePeriodSdOnly = datePeriodSd.split('T');
-                var datePeriodEdOnly = datePeriodEd.split('T');
+                if(para.fields['date-period'] && para.fields['date-period'].structValue !== undefined)
+                {
+                  var datePeriodSd = para.fields['date-period'].structValue.fields.startDate.stringValue;
+                  var datePeriodEd = para.fields['date-period'].structValue.fields.endDate.stringValue;
+                  var datePeriodSdOnly = datePeriodSd.split('T');
+                  var datePeriodEdOnly = datePeriodEd.split('T');
+                }
+                
+                if(para.fields['date-period2'] && para.fields['date-period2'].structValue !== undefined)
+                {
+                  var datePeriodDate3 = para.fields['date-period2'].structValue.fields.startDate.stringValue;
+                  var datePeriodDate4 = para.fields['date-period2'].structValue.fields.endDate.stringValue;
+                  var datePeriodDate3Only = datePeriodDate3.split('T');
+                  var datePeriodDate4Only = datePeriodDate4.split('T');
+                }
+               
                 const a = new Date(datePeriodSdOnly);
                 const b = new Date(datePeriodEdOnly);
                 
                 dateCompResult = dateCompare(a, b);
-                console.log(dateCompResult);
                 dateValidResult = dateValidation(am, un, a, b);
-                console.log(dateValidResult);
                 if(dateValidResult == true)
                 {
                   am = 0;
                   un = 0; 
                 }
                 
-                if(datePeriodSdOnly[0] !== "")
+                if(para.fields['date-period'] && para.fields['date-period'].structValue !== undefined)
                 {
-                  sd = datePeriodSdOnly[0].concat(' ' + currentTime);
+                  if(datePeriodSdOnly[0] !== "")
+                  {
+                    dpd1 = sd = datePeriodSdOnly[0].concat(' ' + currentTime);
+                  }
+                  else
+                  {
+                    dpd1 = sd = "undefined";
+                  }
+                 
+                  if(datePeriodEdOnly[0] !== "")
+                  {
+                    dpd2 = ed = datePeriodEdOnly[0].concat(' ' +currentTime);
+                  }
+                  else
+                  {
+                     dpd2 = ed = "undefined";
+                  }
                 }
-                else
+
+                if(para.fields['date-period2'] && para.fields['date-period2'].structValue !== undefined)
                 {
-                  sd = "undefined";
-                }
-               
-                if(datePeriodEdOnly[0] !== "")
-                {
-                  ed = datePeriodEdOnly[0].concat(' ' +currentTime);
-                }
-                else
-                {
-                  ed = "undefined";
+                  
+                  if(datePeriodDate3Only[0] !== "")
+                  {
+                      dpd3 = sd = datePeriodDate3Only[0].concat(' ' + currentTime);
+                  }
+                  else
+                  {
+                     dpd3 = sd = "undefined";
+                  }
+                 
+                  if(datePeriodDate4Only[0] !== "")
+                  {
+                     dpd4 = ed = datePeriodDate4Only[0].concat(' ' +currentTime);
+                  }
+                  else
+                  {
+                      dpd4 = ed = "undefined";
+                  }
                 }
               }
 
             //finds out dates when date1 and date2 are present
-            else 
+            if((para.fields.date1 && para.fields.date1.stringValue !== '') || (para.fields.date2 && para.fields.date2.stringValue !== ''))
             {
                 var startDateOnly = startDate.split('T');
                 var endDateOnly = endDate.split('T');
@@ -163,20 +196,20 @@ module.exports = function(controller, dialogflowMiddleware) {
                 
                 if(startDateOnly[0] !== "")
                 {
-                  sd = startDateOnly[0].concat(' ' + currentTime);
+                  d1 = sd = startDateOnly[0].concat(' ' + currentTime);
                 }
                 else
                 {
-                  sd = "undefined";
+                  d1 = sd = "undefined";
                 }
                
                 if(endDateOnly[0] !== "")
                 {
-                  ed = endDateOnly[0].concat(' ' +currentTime);
+                  d2 = ed = endDateOnly[0].concat(' ' +currentTime);
                 }
                 else
                 {
-                  ed = "undefined";
+                  d2 = ed = "undefined";
                 }
 
                 if(dateThreeOnly[0] !== "")
@@ -197,54 +230,33 @@ module.exports = function(controller, dialogflowMiddleware) {
                   d4 = "undefined";
                 }
 
-                if(para.fields.Availability && para.fields.Availability2)
-                {
-                  
-                    if(dateThree != '' && dateFour != '')
-                    {
-                      sd1 = sd;
-                      ed1 = d3;
-                      sd2 = d4;
-                      ed2 = ed;
-                    }
-
-                    else if(dateThree != '' && dateFour == '')
-                    {
-                      sd1 = sd;
-                      ed1 = d3;
-                      sd2 = ed;
-                      ed2 = ed;
-                    }
-
-                    else if(dateThree == '' && dateFour != '')
-                    {
-                      sd1 = sd;
-                      ed1 = sd;
-                      sd2 = d4;
-                      ed2 = ed;
-                    }
-                  
-                    else
-                    {
-                      sd1 = sd;
-                      ed1 = sd;
-                      sd2 = ed;
-                      ed2 = ed;
-                    }
-                  
-                }
-
                 if(!para.fields.date2 || endDate == '')
                 {
                   ed = sd;
                 }
               }
             }
-          
-           if(flag3 === 0 && dateCompResult === true && dateValidResult === true)
-           {
+            //figures out dates when one message contains 2 Availability messages
+            if((para.fields.Availability && para.fields.Availability.stringValue != '') && (para.fields.Availability2 && para.fields.Availability2.stringValue != ''))
+            {
+                returnMsg = twoAvailDates(d1, d2, d3, d4, dpd1, dpd2, dpd3, dpd4);
+                sd1 = returnMsg[0];
+                ed1 = returnMsg[1];
+                sd2 = returnMsg[2];
+                ed2 = returnMsg[3];
+            }
+
+            if(dateCompResult== undefined && dateValidResult === undefined)
+            {
+              dateCompResult = true;
+              dateValidResult = true;
+            }
+            
+            //Inserts the message into the google sheet and replies on the channel
+            if(flag3 !== 0 && dateCompResult === true && dateValidResult === true && para.fields && ((para.fields.Availability && para.fields.Availability.stringValue != '') || (para.fields.date1 && para.fields.date1.stringValue != '')))
+            {
              //stores message in textMessage
-             if((para.fields.Availability.stringValue === '' || !para.fields.Availability) && (para.fields.Availability2.stringValue === '' || !para.fields.Availability2 ))
+             if((para.fields.Availability.stringValue === '' || !para.fields.Availability) && (!para.fields.Availability2 || para.fields.Availability2.stringValue === ''))
              {
                textMessage = privateMessage;
                category = privCategory;
@@ -260,26 +272,29 @@ module.exports = function(controller, dialogflowMiddleware) {
                {
                  category = para.fields.Availability2.stringValue;
                }
-               
-             }
-            
-             
+              }
              //retrieves ID if name mentioned directly - @NAME
              if(textMessage.includes('<@'))     
              {
-               if(textMessage.includes("rest of this week"))
-               { 
-                  sd = currentDate + " " + currentTime;
-               }
+              if(textMessage.includes("rest of this week") || textMessage.includes("rest of the week") || textMessage.includes("rest of week") || textMessage.includes("end of the week") || textMessage.includes("end of this week") || textMessage.includes("end of week"))
+              { 
+                var dNow = new Date();
+                var dateNew = lastDayOfWeek(dNow);
+                if(sd == "undefined")
+                {
+                  sd = currentDate + " " + currentTime;    //Stores starting date which here is today;s date when message includes the above words/sentence
+                }
+                ed = dateNew + " " + currentTime;          //Stores ending date which here is last day of the week
+              }
 
-               if(textMessage.includes("end of the month") || textMessage.includes("end of this month") || textMessage.includes("end of month"))
+               if(textMessage.includes("end of the month") || textMessage.includes("end of this month") || textMessage.includes("end of month") || textMessage.includes("rest of month") || textMessage.includes("rest of the month") || textMessage.includes("rest of this month"))
                {
                   var dateNew = lastDayOfMonth(year, month);
                   if(sd == "undefined")
                   {
-                    sd = currentDate + " " + currentTime;
+                    sd = currentDate + " " + currentTime;   //Stores starting date which here is today;s date when message includes the above words/sentence
                   }
-                    ed = dateNew + " " + currentTime;
+                    ed = dateNew + " " + currentTime;       //Stores ending date which here is last day of the month
                 }
 
                var splitMessage = textMessage.split(" ");
@@ -308,11 +323,10 @@ module.exports = function(controller, dialogflowMiddleware) {
                         bot.reply(message, replyText);
                         insertIt(userName, textMessage, category, sd, ed, add);
                      }
-                     
+                    }
                    }
-                 }
+                  }
                 }
-               }
               }
          
             //for indirect or no mentions
@@ -361,25 +375,21 @@ module.exports = function(controller, dialogflowMiddleware) {
                     }
                   }
                 }
-             }
+              }
              
-             if(textMessage.toLowerCase().includes("rest of this week") || textMessage.toLowerCase().includes("rest of the week") || textMessage.toLowerCase().includes("rest of week"))
+             if(textMessage.includes("rest of this week") || textMessage.includes("rest of the week") || textMessage.includes("rest of week") || textMessage.includes("end of the week") || textMessage.includes("end of this week") || textMessage.includes("end of week"))
              { 
-               //sd = currentDate + " " + currentTime;
                var dNow = new Date();
                var dateNew = lastDayOfWeek(dNow);
-               console.log(sd);
                if(sd == "undefined")
                {
                  sd = currentDate + " " + currentTime;
-                 console.log("in sd");
                }
                ed = dateNew + " " + currentTime;
              }
-
-             
+              
              if(textMessage.toLowerCase().includes("end of the month") || textMessage.toLowerCase().includes("end of this month") || textMessage.toLowerCase().includes("end of month"))
-              {
+             {
                 var dateNew = lastDayOfMonth(year, month);
                 if(sd == "undefined")
                   {
@@ -389,9 +399,9 @@ module.exports = function(controller, dialogflowMiddleware) {
               }
              
               if(count > 1)                        //gives error name clashes
-             {
+              {
                 bot.reply(message, 'Name clash! Cannot record! Enter the entire message again with correct surname!');
-             }
+              }
              else if(flag2 === 1 && count <= 1)   //when full name mentioned
              {
                 if(para.fields.Availability.stringValue != '' && para.fields.Availability2.stringValue != '')
@@ -453,7 +463,7 @@ module.exports = function(controller, dialogflowMiddleware) {
                       }
                    }
                   
-                    if(textMessage.includes("rest of this week") || textMessage.includes("rest of the week") || textMessage.includes("rest of week"))
+                    if(textMessage.includes("rest of this week") || textMessage.includes("rest of the week") || textMessage.includes("rest of week") || textMessage.includes("end of the week") || textMessage.includes("end of this week") || textMessage.includes("end of week"))
                     { 
                       var dNow = new Date();
                       var dateNew = lastDayOfWeek(dNow);
@@ -467,10 +477,8 @@ module.exports = function(controller, dialogflowMiddleware) {
                     if(textMessage.includes("end of the month") || textMessage.includes("end of this month") || textMessage.includes("end of month") || textMessage.includes("rest of month") || textMessage.includes("rest of the month") || textMessage.includes("rest of this month"))
                     {
                       var dateNew = lastDayOfMonth(year, month);
-                      console.log(" IN MONTHHH" +para.fields.date1.stringValue);
                       if(!para.fields.date1 || para.fields.date1.stringValue == false)
                       {
-                        console.log("in sd");
                         sd = currentDate + " " + currentTime;
                       }
                       ed = dateNew + " " + currentTime;
@@ -508,7 +516,7 @@ module.exports = function(controller, dialogflowMiddleware) {
   });
 };
 
-function usersList()
+function usersList()                                    //function to store data about the members in the workspace
  {
       request.get('https://slack.com/api/users.list?token='+process.env.AppToken+'&pretty=1', function(err, req, res){
       var userdata = JSON.parse(res);
@@ -516,13 +524,13 @@ function usersList()
     }); 
  }
 
- function insertIt(id, message, category, sd, ed, add)
+ function insertIt(id, message, category, sd, ed, add)   //function to inserts the datainto the google script
  { 
       if(message.includes('&amp;'))
       {
          message = message.replace(/&amp;/g, '%26');
       }
-      request.post("https://script.google.com/macros/s/AKfycbwCEVNM1ssJQ5A2o_Czfj2Wt6G4czz-cMs0Gn133I4t_3aL8xw/exec?&Name="+id+"&Message="+message+"&Category="+category+"&Start Date="+sd+"&End Date="+ed+"&add="+add+"&action=insert", function( error, reque, respo)  
+      request.post(process.env.GoogleScriptUrl+"?&Name="+id+"&Message="+message+"&Category="+category+"&Start Date="+sd+"&End Date="+ed+"&add="+add+"&action=insert", function( error, reque, respo)  
       {
          if(error)
           console.log(error);
@@ -552,14 +560,12 @@ function searchUser(message)
    }
  }
 
- function dateCompare(date1, date2)
+ function dateCompare(date1, date2)                   //function to check whether or not starting date comes before the ending date 
  {
-    console.log("IN DATE COMPARE FUNCTION");
     msDays = 1000 * 60 * 60 * 24;
     var utc1 = Date.UTC(date1.getFullYear(), date1.getMonth(), date1.getDate());
     var utc2 = Date.UTC(date2.getFullYear(), date2.getMonth(), date2.getDate());
     var diff = Math.floor((utc2 - utc1) / msDays);
-    console.log(diff);
     if(diff < 0)
     {
       return false;
@@ -570,34 +576,23 @@ function searchUser(message)
     }
  }
 
- function dateValidation(a, u, date1, date2)
+ function dateValidation(a, u, date1, date2)          //function to confirm that the no of days between the given dates is same as the number of days mentionrd for the leave
  {
-   
-   console.log("IN DATE VALIDATION FUNCTION");
    var n;
-   var wn = 1;
-   var mn = 1;
-   var dn = 1;
-   var wnd = 0;
-   var mnd = 0;
-   var dnd = 0;
+   var wn = mn = dn = 1;
+   var wnd = mnd = dnd = 0;
    msDays = 1000 * 60 * 60 * 24;
    var utc1 = Date.UTC(date1.getFullYear(), date1.getMonth(), date1.getDate());
    var utc2 = Date.UTC(date2.getFullYear(), date2.getMonth(), date2.getDate());
    var diff = Math.floor((utc2 - utc1) / msDays);
-   console.log("DIFFERENCE BETWEEN THE DAYS IS:" +diff);
-   console.log("A:" + a + "U:"+u);
    if(u == "wk")
    {
      n = 7;
-     console.log("IN WEEK");
      for(let i = 1; i < a; i++)
      {
         wn++;
-        console.log("WN:" +wn);
      }
      wnd = n * wn;
-     console.log("WND:" +wnd);
      if(diff != wnd - 1)
      {
        return false;
@@ -614,7 +609,6 @@ function searchUser(message)
      for(let i = 1; i < a; i++)
      {
         mn++;
-        console.log(mn);
      }
      mnd = n * mn;
      if(diff != mnd - 1)
@@ -633,7 +627,6 @@ function searchUser(message)
      for(let i = 1; i < a; i++)
      {
         dn++;
-        console.log(dn);
      }
      dnd = n * dn;
      if(diff != dnd - 1)
@@ -652,7 +645,7 @@ function searchUser(message)
    }
  }
 
- function lastDayOfMonth(y, m)
+ function lastDayOfMonth(y, m)                    //function to find out the last day of the month
  {
     var lastDay = new Date(y, m, 0).getDate();   
     var d = new Date();      
@@ -662,7 +655,7 @@ function searchUser(message)
     return newDate; 
  }
 
- function lastDayOfWeek(date)
+ function lastDayOfWeek(date)                    //function to find out the last day of the week
 {
   var lastday = date.getDate() - (date.getDay() - 1) + 6;
   var d = new Date();      
@@ -672,20 +665,18 @@ function searchUser(message)
   return newDate; 
 }
 
-function dateReply(message,para)
-{
+function dateReply(message,para)               //function for when dates are mentioned as numbers; Eg- 21, 22, 23 June
+{ 
   var privCategory;
   var privateMessage;
   var privateId;
   flag3 = 1;
   privateMessage = message.event.text;
   privateId = message.event.user;
-  console.log(privateId);
  // privateReply = message.fulfillment.text;
   if(para.fields.Availability.stringValue !== '')
     {
       privCategory = para.fields.Availability.stringValue;
-      console.log(privCategory);
     }
     if(message.event.channel !== searchUser(message))
     {
@@ -696,7 +687,7 @@ function dateReply(message,para)
       } ,function(err, convo){
           if(!err && convo)
           {
-            convo.say("Please enter the starting and the ending dates of your inavailability in proper date format - dd montName!");
+            convo.say("Please enter the starting and the ending dates of your unavailability in proper date format - dd montName!");
           }
         });
 
@@ -704,7 +695,7 @@ function dateReply(message,para)
         return retArray;
 }
 
-function twoAvail(message, para)
+function twoAvail(message, para)              //function that gives the messages when two availability intents are present
 {
   var availabilityWord;
   var category;
@@ -716,20 +707,16 @@ function twoAvail(message, para)
   availabilityWord = para.fields.Availability2.stringValue;
   category = para.fields.Availability.stringValue;
   category2 = para.fields.Availability2.stringValue;
-  console.log(availabilityWord);
   var index = availMessage.toLowerCase().indexOf(availabilityWord);
-  console.log(index);
   var length = availMessage.length;
   message1 = availMessage.substr(0, index);
-  console.log("MESSAGE 1:" +message1);
   message2 = availMessage.substr(index, length); 
-  console.log("MESSAGE 2:" +message2); 
-
+ 
   retArray2 = [message1, message2, category, category2];
   return retArray2;
 }
 
-function onlyDuration(message, para)
+function onlyDuration(message, para)                    //fucntion for when only duration is present and no dates; Eg- wfh for 2 days 
 {
   flag3 = 0;
   var userName;
@@ -753,11 +740,101 @@ function onlyDuration(message, para)
     } ,function(err, convo){
       if(!err && convo)
       {
-        convo.say("Please enter the starting and the ending dates of your inavailability!");
+        convo.say("Please enter the starting and the ending dates of your unavailability!");
       }
    
     });
   }
   retArray3 = [privateMessage, privCategory];
   return retArray3; 
+}
+
+function twoAvailDates(d1, d2, d3, d4, dpd1, dpd2, dpd3, dpd4)   //function that gives the dates when two availability intents are present
+{
+  var sd1, ed1, sd2, ed2
+  if(dpd1 !== "undefined" || dpd3 != undefined)
+  {
+   if(dpd1 !== "undefined" && dpd3 !== "undefined")
+   {
+    sd1 = dpd1;
+    ed1 = dpd2;
+    sd2 = dpd3;
+    ed2 = dpd4;
+   }
+
+  else if(dpd1 !== "undefined" && dpd3 === "undefined")
+  {
+    if(d2 !== "undefined" && d4 !== "undefined")
+    {
+      sd1 = dpd1;
+      ed1 = dpd2;
+      sd2 = d4;
+      ed2 = d2;
+    }
+    
+    else if(d2 !== "undefined" && d4 === "undefined")
+    {
+      sd1 = dpd1;
+      ed1 = dpd2;
+      sd2 = d2;
+      ed2 = d2;
+    }
+  }
+  
+  else if(dpd1 === "undefined" && dpd3 !== "undefined")
+  {
+    if(d1 !== "undefined" && d3 !== "undefined")
+    {
+      sd1 = d1;
+      ed1 = d3;
+      sd2 = dpd3;
+      ed2 = dpd4;
+    }
+    
+    else if(d1 !== "undefined" && d3 === "undefined")
+    {
+      sd1 = d1;
+      ed1 = d1;
+      sd2 = dpd3;
+      ed2 = dpd4;
+    }
+  }
+
+  else
+  {
+    if(d3 !== "undefined" && d4 !== "undefined")
+    {
+    sd1 = d1;
+    ed1 = d3;
+    sd2 = d4;
+    ed2 = d2;
+   }
+  
+  else if(d3 !== "undefined" && d4 === "undefined")
+  {
+    sd1 = d1;
+    ed1 = d3;
+    sd2 = d2;
+    ed2 = d2;
+  }
+  
+  else if(d3 === "undefined" && d4 !== "undefined")
+  {
+    sd1 = d1;
+    ed1 = d1;
+    sd2 = d4;
+    ed2 = d2;
+  }
+  
+  else 
+  {
+    sd1 = d1;
+    ed1 = d1;
+    sd2 = d2;
+    ed2 = d2;
+  }
+ }
+}
+retArray = [sd1, ed1, sd2, ed2];
+return retArray;
 }
