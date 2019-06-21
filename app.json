@@ -21,6 +21,15 @@
       "studio_token": {
           "description": "Token associated with your bot in Botkit Studio",
           "required":false
+      },
+      "PORT":{
+          "description": "PORT on which you run the code"
+      },
+      "AppToken": {
+          "description": "Token associated with the app provided by slack"
+      },
+      "GoogleScripturl": {
+          "description": "URL of the script in which messages are being recorded"
       }
   }
 }
